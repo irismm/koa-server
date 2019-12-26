@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="vue.js"></script>
+    <script src="vue-router.js"></script>
+    <script src="./node_modules/axios/dist/axios.js"></script>
+</head>
+<body>
+    <div id="app"></div>
+    <script type="text/javascript">
+        var App = {
+          data(){
+            return{
+              res1:'',
+              res2:''
+            }
+          },
+          template:`<div>
+                        <button @click="handlerClick">发请求</button>
+                        <button @click="sendAjax">请求2</button>
+                        res1---{{res1}}
+                        res2---{{res2}}
+                     </div>`,
+          methods:{
+            handlerClick(){
+              // 添加请求拦截器
+              this.$axios.interceptors.request.use(function (config) {
+                // 在发送请求之前做些什么
+                return config;
+              }, function (error) {
+                // 对请求错误做些什么
+                return Promise.reject(error);
+              });
+
+              // 添加响应拦截器
+              this.$axios.interceptors.response.use(function (response) {
+                // 对响应数据做点什么
+                return response;
+              }, function (error) {
+                // 对响应错误做点什么
+                return Promise.reject(error);
+              });
+              this.$axios.get('http://127.0.0.1:8090').then(res=>{
+                console.log('发送请求了')
+                console.log(res.data.msg)
+              }).catch(err=>{
+                console.log(err)
+              })
+            },
+            // 并发请求
+            sendAjax(){
+              this.$axios.defaults.baseURL = 'http://127.0.0.1:8090'
+              var r1 = this.$axios.get('')
+              var r2 = this.$axios.post('add','a=1')
+
+              this.$axios.all([r1,r2])
+                .then(this.$axios.spread((res1,res2) => {
+                this.res1 = res1.data
+                this.res2 = res2.data
+              }))
+                .catch(err => {
+
+                })
+            }
+          }
+        }
+
+        Vue.prototype.$axios = axios;
+
+        new Vue({
+          el:'#app',
+          template:'<App/>',
+          components:{
+            App
+          }
+        })
+    </script>
+</body>
+</html>
